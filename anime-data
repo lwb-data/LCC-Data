@@ -1,0 +1,12 @@
+[
+  {
+    "title": "One Piece",
+    "image": "https://example.com/one_piece_poster.jpg",
+    "link": "https://example.com/watch/op_1"
+  },
+  {
+    "title": "Attack on Titan",
+    "image": "https://example.com/aot_poster.jpg",
+    "link": "https://example.com/watch/aot_1"
+  }
+]
