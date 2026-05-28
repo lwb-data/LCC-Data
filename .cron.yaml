@@ -2,9 +2,8 @@ name: Auto Fetch Anime
 
 on:
   schedule:
-    # تشغيل الكود تلقائياً كل 5 ساعات
     - cron: '0 */5 * * *'
-  workflow_dispatch: # يتيح لك تشغيل الكود يدوياً للتجربة في أي وقت
+  workflow_dispatch:
 
 jobs:
   run-scraper:
@@ -32,5 +31,5 @@ jobs:
           git config --global user.name "AnimeBot"
           git config --global user.email "bot@animeapp.com"
           git add movies.json
-          git diff-index --quiet HEAD || git commit -m "Auto-update: Latest anime list from Anime4Up"
+          git diff-index --quiet HEAD || git commit -m "Auto-update: Latest anime list"
           git push
