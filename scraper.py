@@ -3,7 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-TARGET_URL = "https://w1.anime4up.xyz/"
+TARGET_URL = "https://w1.anime4up.rest/home8/"
 JSON_FILE = "movies.json"
 
 def fetch_latest_anime():
@@ -20,17 +20,25 @@ def fetch_latest_anime():
         soup = BeautifulSoup(response.content, 'html.parser')
         anime_list = []
         
-        div_blocks = soup.find_all('div', class_='anime-card-container') or soup.find_all('div', class_='col-md-2')
+        # Target the exact grid item containers on Anime4Up
+        div_blocks = soup.select('div.anime-card-container') or soup.select('div.col-md-2') or soup.select('div.anime-post')
         
         for block in div_blocks:
-            title_element = block.find('h3') or block.find('a')
+            # Extract title
+            title_element = block.select_one('h3') or block.select_one('.anime-card-title') or block.select_one('a')
+            # Extract image
             img_element = block.find('img')
+            # Extract watch link
             link_element = block.find('a')
             
             if title_element and link_element:
                 title = title_element.text.strip()
                 link = link_element.get('href', '')
-                image = img_element.get('src', '') if img_element else ''
+                
+                # Handle images that might be lazy-loaded
+                image = ''
+                if img_element:
+                    image = img_element.get('data-src') or img_element.get('src') or ''
                 
                 if title and link:
                     anime_list.append({
