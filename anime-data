@@ -1,12 +1,71 @@
-[
-  {
-    "title": "One Piece",
-    "image": "https://example.com/one_piece_poster.jpg",
-    "link": "https://example.com/watch/op_1"
-  },
-  {
-    "title": "Attack on Titan",
-    "image": "https://example.com/aot_poster.jpg",
-    "link": "https://example.com/watch/aot_1"
-  }
-]
+import os
+import json
+import requests
+from bs4 import BeautifulSoup
+
+TARGET_URL = "https://w1.anime4up.rest/home8/"
+JSON_FILE = "movies.json"
+
+def fetch_latest_anime():
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    try:
+        response = requests.get(TARGET_URL, headers=headers)
+        if response.status_code != 200:
+            print(f"Failed to access site, status code: {response.status_code}")
+            return []
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        anime_list = []
+        
+        div_blocks = soup.find_all('div', class_='anime-card-container') or soup.find_all('div', class_='col-md-2')
+        
+        for block in div_blocks:
+            title_element = block.find('h3') or block.find('a') or block.find('div', class_='anime-card-title')
+            img_element = block.find('img')
+            link_element = block.find('a')
+            
+            if title_element and link_element:
+                title = title_element.text.strip()
+                link = link_element.get('href', '')
+                image = img_element.get('src', '') if img_element else ''
+                
+                if title and link:
+                    anime_list.append({
+                        "title": title,
+                        "image": image,
+                        "link": link
+                    })
+        
+        return anime_list
+
+    except Exception as e:
+        print(f"An error occurred during scraping: {e}")
+        return []
+
+def send_telegram_notification(count):
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    
+    if bot_token and chat_id:
+        message = f"🚀 *Anime Update!*\n\nSuccessfully fetched {count} latest items from Anime4Up and updated your application JSON file."
+        telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        requests.post(telegram_url, data={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"})
+
+def main():
+    print("Starting Anime4Up Auto-Scraper...")
+    latest_data = fetch_latest_anime()
+    
+    if latest_data:
+        with open(JSON_FILE, "w", encoding="utf-8") as f:
+            json.dump(latest_data, f, ensure_ascii=False, indent=2)
+        print(f"Successfully saved {len(latest_data)} items to {JSON_FILE}")
+        
+        send_telegram_notification(len(latest_data))
+    else:
+        print("No new data fetched. Skipping update.")
+
+if __name__ == "__main__":
+    main()
