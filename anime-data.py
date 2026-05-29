@@ -14,39 +14,44 @@ def scrape_anime():
     
     try:
         response = requests.get(TARGET_URL, headers=headers, timeout=15)
+        
         if response.status_code != 200:
-            if not os.path.exists(filename):
-                with open(filename, "w", encoding="utf-8") as f:
-                    json.dump([], f)
-            print(f"Error: Status code {response.status_code}")
-            return
+            raise Exception(f"Target website returned status code: {response.status_code}")
             
         soup = BeautifulSoup(response.content, "html.parser")
         anime_list = []
         
-        div_blocks = soup.find_all('div', class_='anime-card-container') or soup.find_all('div', class_='col-md-2')
+        div_blocks = soup.find_all('div', class_='anime-card-container') or \
+                     soup.find_all('div', class_='col-md-2') or \
+                     soup.find_all('div', class_='anime-card')
         
         for block in div_blocks:
-            title_element = block.find('h3') or block.find('a')
+            title_element = block.find('h3') or block.find('a') or block.find('div', class_='anime-card-title')
             link_element = block.find('a')
             img_element = block.find('img')
             
             if title_element and link_element:
-                anime_list.append({
-                    "title": title_element.text.strip(),
-                    "link": link_element.get('href', '').strip(),
-                    "image": img_element.get('src', '').strip() if img_element else ""
-                })
+                link = link_element.get('href', '').strip()
+                title = title_element.text.strip()
+                image = img_element.get('src', '').strip() if img_element else ""
+                
+                if title and link:
+                    anime_list.append({
+                        "title": title,
+                        "link": link,
+                        "image": image
+                    })
+        
+        if not anime_list:
+            raise Exception("Scraper finished but zero items were found. HTML structure might have changed!")
                 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(anime_list, f, ensure_ascii=False, indent=4)
         print(f"Success: Scraped {len(anime_list)} items.")
         
     except Exception as e:
-        print(f"Exception occurred: {str(e)}")
-        if not os.path.exists(filename):
-            with open(filename, "w", encoding="utf-8") as f:
-                json.dump([], f)
+        print(f"Crucial Error during scraping: {str(e)}")
+        raise e
 
 if __name__ == "__main__":
     scrape_anime()
