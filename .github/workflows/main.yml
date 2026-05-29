@@ -2,7 +2,7 @@ name: Auto Fetch Anime
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Runs every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Execute Scraper
         run: |
-          python main.py
+          python anime-data.py
 
       - name: Commit and Push Changes
         run: |
