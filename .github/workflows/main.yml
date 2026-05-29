@@ -25,9 +25,7 @@ jobs:
           pip install requests beautifulsoup4
 
       - name: Execute Scraper
-        id: scrape_step
         run: |
-          # تأكد هنا من كتابة الاسم الصحيح لملفك مع صيغة .py
           python anime-data.py
 
       - name: Commit and Push Changes
@@ -41,10 +39,9 @@ jobs:
             echo "🚨 Error: movies.json was not created by the scraper!" && exit 1
           fi
 
-      # 🔔 هذه الخطوة الذكية سترسل لك تنبيهاً على التيليجرام فوراً إذا فشل الكشط أو لم يجد الملف
       - name: Send Telegram Notification on Failure
         if: failure()
         run: |
-          curl -s -X POST "https://api.telegram.org/bot8859232723:AAE7Y4mNxn0Mq2tnaCQZmDdBQcknXNy-zSI/sendMessage" \
-          -d chat_id="YOUR_PERSONAL_CHAT_ID" \
-          -d text="⚠️ Github Actions Alert: Anime Scraper has FAILED to update movies.json. Please check Github!"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="⚠️ Github Actions Alert: Anime Scraper has FAILED to update movies.json. Please check your Github workflow!"
