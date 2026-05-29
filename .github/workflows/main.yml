@@ -2,34 +2,35 @@ name: Auto Fetch Anime
 
 on:
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Set up job
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install Dependencies
-        run: pip install requests beautifulsoup4
+        run: |
+          pip install requests beautifulsoup4
 
       - name: Execute Scraper
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python anime-data
+        run: |
+          python anime-data
 
       - name: Commit and Push Changes
         run: |
-          git config --global user.name "AnimeBot"
-          git config --global user.email "bot@animeapp.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add movies.json
-          git diff-index --quiet HEAD || git commit -m "Auto-update: Latest anime list"
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update anime data" && git push)
