@@ -55,3 +55,4 @@ def scrape_anime():
 
 if __name__ == "__main__":
     scrape_anime()
+
