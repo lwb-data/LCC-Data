@@ -4,14 +4,14 @@ import requests
 from bs4 import BeautifulSoup
 
 TARGET_URL = "https://w1.anime4up.rest/home8/"
-# Integrated your exact API key from the screenshot safely
+# Your exact API key
 SCRAPEANT_API_KEY = "2632547b8ac743e2a892a7f1aa7d311a"
 
 def scrape_anime():
     filename = "movies.json"
     
-    # Constructing the API request url to bypass Cloudflare
-    api_url = "https://api.scrapeant.com/v1/general"
+    # Corrected domain: api.scrapingant.com
+    api_url = "https://api.scrapingant.com/v1/general"
     params = {
         "url": TARGET_URL,
         "x-api-key": SCRAPEANT_API_KEY,
@@ -22,7 +22,7 @@ def scrape_anime():
         response = requests.get(api_url, params=params, timeout=30)
         
         if response.status_code != 200:
-            raise Exception(f"ScrapeAnt Proxy returned status code: {response.status_code}. Detail: {response.text}")
+            raise Exception(f"ScrapingAnt Proxy returned status code: {response.status_code}. Detail: {response.text}")
             
         soup = BeautifulSoup(response.content, "html.parser")
         anime_list = []
