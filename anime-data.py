@@ -4,22 +4,24 @@ import requests
 from bs4 import BeautifulSoup
 
 TARGET_URL = "https://w1.anime4up.rest/home8/"
-# Your exact API key
+# Your ScrapingAnt API key
 SCRAPEANT_API_KEY = "2632547b8ac743e2a892a7f1aa7d311a"
 
 def scrape_anime():
     filename = "movies.json"
-    
-    # Corrected domain: api.scrapingant.com
     api_url = "https://api.scrapingant.com/v1/general"
+    
+    # Advanced parameters to bypass tough firewalls (Enabling Browser & Residential Proxy)
     params = {
         "url": TARGET_URL,
         "x-api-key": SCRAPEANT_API_KEY,
-        "browser": "false"
+        "browser": "true",          # Runs a real hidden browser to bypass detection
+        "proxy_type": "residential", # Uses a residential home IP instead of datacenter
+        "proxy_country": "ae"        # Route through UAE proxy for better speed/access to Arabic content
     }
     
     try:
-        response = requests.get(api_url, params=params, timeout=30)
+        response = requests.get(api_url, params=params, timeout=45)
         
         if response.status_code != 200:
             raise Exception(f"ScrapingAnt Proxy returned status code: {response.status_code}. Detail: {response.text}")
@@ -53,7 +55,7 @@ def scrape_anime():
                 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(anime_list, f, ensure_ascii=False, indent=4)
-        print(f"Success: Scraped {len(anime_list)} items securely via Proxy.")
+        print(f"Success: Scraped {len(anime_list)} items via Advanced Residential Browser.")
         
     except Exception as e:
         print(f"Crucial Error during scraping: {str(e)}")
