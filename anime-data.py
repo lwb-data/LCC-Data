@@ -4,33 +4,25 @@ import requests
 from bs4 import BeautifulSoup
 
 TARGET_URL = "https://w1.anime4up.rest/home8/"
+# Integrated your exact API key from the screenshot safely
+SCRAPEANT_API_KEY = "2632547b8ac743e2a892a7f1aa7d311a"
 
 def scrape_anime():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Referer": "https://www.google.com/",
-        "Connection": "keep-alive",
-        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "cross-site",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1"
-    }
     filename = "movies.json"
     
-    session = requests.Session()
+    # Constructing the API request url to bypass Cloudflare
+    api_url = "https://api.scrapeant.com/v1/general"
+    params = {
+        "url": TARGET_URL,
+        "x-api-key": SCRAPEANT_API_KEY,
+        "browser": "false"
+    }
     
     try:
-        response = session.get(TARGET_URL, headers=headers, timeout=20)
+        response = requests.get(api_url, params=params, timeout=30)
         
         if response.status_code != 200:
-            raise Exception(f"Target website returned status code: {response.status_code}")
+            raise Exception(f"ScrapeAnt Proxy returned status code: {response.status_code}. Detail: {response.text}")
             
         soup = BeautifulSoup(response.content, "html.parser")
         anime_list = []
@@ -57,11 +49,11 @@ def scrape_anime():
                     })
         
         if not anime_list:
-            raise Exception("Scraper finished but zero items were found. HTML structure might have changed!")
+            raise Exception("Scraper completed but zero items were found. Structure might have changed.")
                 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(anime_list, f, ensure_ascii=False, indent=4)
-        print(f"Success: Scraped {len(anime_list)} items.")
+        print(f"Success: Scraped {len(anime_list)} items securely via Proxy.")
         
     except Exception as e:
         print(f"Crucial Error during scraping: {str(e)}")
