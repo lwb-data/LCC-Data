@@ -3,43 +3,41 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-# Switching target to Anime3rb
+# Direct target URL
 TARGET_URL = "https://anime3rb.com/"
-# Your ScrapingAnt API key
-SCRAPEANT_API_KEY = "2632547b8ac743e2a892a7f1aa7d311a"
 
 def scrape_anime():
     filename = "movies.json"
-    api_url = "https://api.scrapingant.com/v1/general"
     
-    # Advanced rendering options to guarantee zero blocks on the new site
-    params = {
-        "url": TARGET_URL,
-        "x-api-key": SCRAPEANT_API_KEY,
-        "browser": "true",          
-        "proxy_type": "residential", 
-        "proxy_country": "ae"        
+    # Real browser headers to bypass basic server filters
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Cache-Control": "max-age=0"
     }
     
     try:
-        print("⚡ Connecting to Anime3rb via secure residential proxy...")
-        response = requests.get(api_url, params=params, timeout=45)
+        print("⚡ Connecting directly to Anime3rb...")
+        response = requests.get(TARGET_URL, headers=headers, timeout=20)
         
         if response.status_code != 200:
-            raise Exception(f"ScrapingAnt Proxy returned status code: {response.status_code}. Detail: {response.text}")
+            raise Exception(f"Website returned status code: {response.status_code}")
             
         soup = BeautifulSoup(response.content, "html.parser")
         anime_list = []
         
-        # Mapping Anime3rb card structures for latest episodes and updates
+        # Comprehensive search for anime entries based on Anime3rb's actual architecture
+        # It looks for cards, latest episodes, and anchor tags containing links
         div_blocks = soup.find_all('div', class_='anime-card') or \
                      soup.find_all('div', class_='latest-episode-card') or \
                      soup.find_all('div', class_='card') or \
-                     soup.find_all('a', class_='anime-popup')
+                     soup.find_all('div', class_='col-12')
                      
         for block in div_blocks:
-            # Checking different possible tag positions on Anime3rb layout
-            title_element = block.find('h3') or block.find('h2') or block.find('span', class_='title') or block.find('div', class_='title')
+            title_element = block.find('h3') or block.find('h2') or block.find('h5') or block.find('span', class_='title')
             link_element = block if block.name == 'a' else block.find('a')
             img_element = block.find('img')
             
@@ -48,12 +46,11 @@ def scrape_anime():
                 title = title_element.text.strip()
                 image = img_element.get('src', '').strip() if img_element else ""
                 
-                # Auto repair links if they are relative paths (e.g., /titles/naruto)
+                # Auto-repair relative URLs
                 if link.startswith('/'):
                     link = f"https://anime3rb.com{link}"
                     
                 if title and link and link != "https://anime3rb.com/":
-                    # Prevent duplicates in the list
                     if not any(item['link'] == link for item in anime_list):
                         anime_list.append({
                             "title": title,
@@ -62,11 +59,11 @@ def scrape_anime():
                         })
         
         if not anime_list:
-            raise Exception("Scraper completed but zero items were found on Anime3rb. Retrying might be needed.")
+            raise Exception("Scraper connected successfully but failed to parse HTML structure. The tags might be different.")
                 
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(anime_list, f, ensure_ascii=False, indent=4)
-        print(f"🎉 Success! Beautifully scraped {len(anime_list)} items from Anime3rb.")
+        print(f"🎉 Success! Beautifully extracted {len(anime_list)} items directly.")
         
     except Exception as e:
         print(f"Crucial Error during scraping: {str(e)}")
